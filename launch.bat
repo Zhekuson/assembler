@@ -1,1 +1,1 @@
-start "" start1.exe
+start "" start1.exe 1 2 3 4

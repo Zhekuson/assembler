@@ -33,22 +33,47 @@ import msvcrt,\
 .data
 	endl FIX 10, 13 ;endline \n for strings; перенос строки
 	launchstr db "This program will calculate definite integral a+b*x^3 on [x1;x2]",endl,"using the method of rectangles(width = 1)",endl, "Made by Plyusch Evgenii, BSE181_2, 2019",0
-	string db 256 DUP(?)
+	message db 256 DUP(?)
 
 	commandLine dd ?
-	n dd 0
-	resultstr db "The calculated integral is %d"
+	result_integral dd 0
+	h dd 1;ширина отрезка; width of the rectangle
+	X1 dd ?
+	X2 dd ?
+	AA dd ?
+	BB dd ?
+
+macro show_result{
+	invoke sprintf, message,  "The calculated integral is %d",[result_integral];result_integral
+	invoke MessageBox, 0, message, "Result", MB_OK
+	invoke ExitProcess, 0
+}
+macro show_help{
+       invoke MessageBox, 0,"Usage: in cmd> filename [a] [b] [x1] [x2]", "Help", MB_OK
+       invoke ExitProcess, 0
+}
+
+macro check_input{
+
+}
 
 .code
     start:
 	invoke MessageBox, 0, launchstr, "Welcome", MB_OK  ;launch the start welcome window; запускаем окно приветствия
 	cinvoke GetCommandLine
 	mov [commandLine], eax
-	cinvoke sscanf,[commandLine],'%*s %d'
+	cinvoke sscanf,[commandLine], '%*s %d %d %d %d', AA,BB,X1,X2
+	invoke sprintf, message,  "Params are %d %d %d %d",[AA],[BB], [X1],[X2];result_integral
+	invoke MessageBox, 0, message, "Welcome", MB_OK
+	show_help
 
-	invoke sprintf, string,  "The calculated integral is %d",[n]
-	invoke MessageBox, 0, string, "Result", MB_OK
-	invoke ExitProcess, 0
+	;cinvoke GetCommandLine
+       ; mov [commandLine], eax
+
+
+	show_result
+
+
 
 
 
