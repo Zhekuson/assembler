@@ -50,7 +50,11 @@ macro show_result{
 	invoke ExitProcess, 0
 }
 macro show_help{
-      invoke MessageBox, 0,"Usage: in cmd> filename [a] [b] [x1] [x2] X1 != X2, A and B != 0", "Help", MB_OK
+      invoke MessageBox, 0,"Be careful: Usage: in cmd> filename [a] [b] [x1] [x2] X1 <= X2, A and B != 0", "Help", MB_OK
+      invoke ExitProcess, 0
+}
+macro overflow{
+      invoke MessageBox, 0,"Overflow due to big numbers", "Error", MB_OK
       invoke ExitProcess, 0
 }
 macro check_collect_input{
@@ -62,11 +66,10 @@ macro check_collect_input{
      cmp ebx,[XX2];проверка x1 = x2
      jge end_help; x1 >= x2
 
-
-
-     OR eax, [BB];Проверка а и b на ноль
+     OR eax, [BB];check a and b != 0
      cmp eax, 0
      je end_help
+
 }
 macro input{
 	cinvoke GetCommandLine
@@ -76,15 +79,33 @@ macro input{
 	invoke MessageBox, 0, message, "Your input params", MB_OK
 
 }
+macro check_overflow{
+		 cmp OF, 1b
+		 je overflow_occured
+}
+macro calc_point1{
+		 mov edi, ebx
+		 imul edi, ebx
+		 imul edi, ebx ; here is x^3
+		 imul edi, [BB];*b
+		 add edi, [AA];  = a+b*x3
+}
+macro calc_point2{
 
+		 mov ebp, ebx
+		 imul ebp, ebx
+		 imul ebp, ebx ; here is x^3
+		 imul ebp,[BB];*b
+		 add ebp, [AA];  = a+b*x^3
+
+}
 .code
     start:
 	invoke MessageBox, 0, launchstr, "Welcome", MB_OK  ;launch the start welcome window; запускаем окно приветствия
-	input
-	check_collect_input
+	input;launch input
+	check_collect_input; checking values
 
 	;main section
-	;edx = x1
 	;while xx1 < xx2
 	mov esi, 0
 	mov ebx, [XX1]
@@ -95,40 +116,27 @@ macro input{
 
 
 		 ;previous x1
-		 mov edi, ebx
-		 imul edi, ebx
-		 imul edi, ebx
-		 imul edi, [BB];*b
-		 add edi, [AA];  = a+b*x^3
-		 ;calculated f for prev x
-
-		 ; mov [h], edi
-		;  invoke sprintf, message,  "The edi is %d",[h]
-		;  invoke MessageBox, 0, message, "res", MB_OK
-
+		 calc_point1
 		 inc ebx ;increment ebx
+		 calc_point2; calc for next x
 
-		 mov ebp, ebx
-		 imul ebp, ebx
-		 imul ebp, ebx
-		 imul ebp,[BB];*b
-		 add ebp, [AA];  = a+b*x^3
 
-		 cmp edi,ebp
+		 cmp edi,ebp ;compare previous and next
 		 jle add_left
 
 		 add_right:
-			add  esi, ebp;added right value
+			add  esi, ebp;added right value because it is lower
 			jmp start_cycle
 		 add_left:
-			add  esi, edi;added left value
+			add  esi, edi;added left value because it is lower
 			jmp start_cycle
-	cycle_exit:
-	show_result
+	cycle_exit:;label for exit
+		show_result;show calculated result
 
-	end_help:;метка перехода на вызов помощи при неправильных аргументах
+	end_help:;label for exit because of wrong arguments
 		show_help
-
+	overflow_occured:
+		overflow
 
 
 
