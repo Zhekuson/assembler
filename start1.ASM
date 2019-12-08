@@ -67,8 +67,6 @@ macro check_collect_input{
      OR eax, [BB];ѕроверка а и b на ноль
      cmp eax, 0
      je end_help
-
-
 }
 macro input{
 	cinvoke GetCommandLine
@@ -92,40 +90,29 @@ macro input{
 	mov ebx, [XX1]
 	start_cycle:
 
-		 cmp ebx,[XX2]	     ;	invoke MessageBox, 0, launchstr, "Rep", MB_OK
+		 cmp ebx,[XX2]
 		 jge cycle_exit ;check if cycle is over
 
 
-		 mov ecx, ebx; ecx = previous x1
-		 inc ebx ;increment edx
+		 ;previous x1
+		 mov edi, ebx
+		 imul edi, ebx
+		 imul edi, ebx
+		 imul edi, [BB];*b
+		 add edi, [AA];  = a+b*x^3
+		 ;calculated f for prev x
 
-		  invoke MessageBox, 0, launchstr, "We", MB_OK
+		 ; mov [h], edi
+		;  invoke sprintf, message,  "The edi is %d",[h]
+		;  invoke MessageBox, 0, message, "res", MB_OK
 
-		 mov edi, 1
-		 imul edi, ecx
-		 mov edi, eax
-		 imul edi, ecx
-		 mov edi, eax
-		 imul edi, ecx;x^3
-		 mov edi, eax
-		 imul edi,[BB];*b
-		 mov edi, eax
-		 add edi, [AA] ;in eax = a+b*x^3
-		 ;calculated f for prev x in ecx
+		 inc ebx ;increment ebx
 
-
-
-		 ;here we calculate for current x
-		 mov ebp, 1
-		 imul ebp, edx
-		 mov ebp, eax
-		 imul ebp, edx
-		 mov ebp, eax
-		 imul ebp, edx;x^3
-		 mov ebp, eax
+		 mov ebp, ebx
+		 imul ebp, ebx
+		 imul ebp, ebx
 		 imul ebp,[BB];*b
-		 mov ebp, eax
-		 add ebp, [AA] ;a+b*x^3
+		 add ebp, [AA];  = a+b*x^3
 
 		 cmp edi,ebp
 		 jle add_left
@@ -137,9 +124,6 @@ macro input{
 			add  esi, edi;added left value
 			jmp start_cycle
 	cycle_exit:
-	;	       mov [result_integral], edx
-	  invoke MessageBox, 0, launchstr, "exit", MB_OK
-	  mov [result_integral], esi
 	show_result
 
 	end_help:;метка перехода на вызов помощи при неправильных аргументах
