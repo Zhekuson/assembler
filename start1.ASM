@@ -44,7 +44,8 @@ import msvcrt,\
 	BB dd ?
 
 macro show_result{
-	invoke sprintf, message,  "The calculated integral is %d",dword[esi];result_integral
+	mov [result_integral], esi
+	invoke sprintf, message,  "The calculated integral is %d",[result_integral]
 	invoke MessageBox, 0, message, "Result", MB_OK
 	invoke ExitProcess, 0
 }
@@ -54,15 +55,20 @@ macro show_help{
 }
 macro check_collect_input{
 
-    ; mov eax, [AA]
-    ; mov ebx, [BB]
-     mov edx, [XX1]
-     cmp edx, XX2;проверка x1 = x2
+     mov eax, [AA]
+     mov ebx, [BB]
+     mov ebx, [XX1]
+    ; invoke MessageBox, 0, launchstr, "Welcome", MB_OK
+     cmp ebx,[XX2];проверка x1 = x2
      jge end_help; x1 >= x2
-     OR eax, ebx;ѕроверка а и b на ноль
+
+
+
+     OR eax, [BB];ѕроверка а и b на ноль
      cmp eax, 0
      je end_help
-     mov eax, [AA]
+
+
 }
 macro input{
 	cinvoke GetCommandLine
@@ -78,58 +84,62 @@ macro input{
 	invoke MessageBox, 0, launchstr, "Welcome", MB_OK  ;launch the start welcome window; запускаем окно приветстви€
 	input
 	check_collect_input
+
 	;main section
 	;edx = x1
 	;while xx1 < xx2
 	mov esi, 0
+	mov ebx, [XX1]
 	start_cycle:
-		 cmp edx, [XX2]
+
+		 cmp ebx,[XX2]	     ;	invoke MessageBox, 0, launchstr, "Rep", MB_OK
 		 jge cycle_exit ;check if cycle is over
 
-		 mov ecx, edx; ecx = previous x1
-		 inc edx ;increment edx
 
-		 mov eax, ecx
-		 mul ecx
-		 mul ecx;x^3
+		 mov ecx, ebx; ecx = previous x1
+		 inc ebx ;increment edx
 
-		 mov ecx, eax
-		 mov eax, [BB]
-		 mul ecx ;*b
+		  invoke MessageBox, 0, launchstr, "We", MB_OK
 
-		 add eax, [AA] ;in eax = a+b*x^3
-		 mov ecx, eax ;calculated f for prev x in ecx
+		 mov edi, 1
+		 imul edi, ecx
+		 mov edi, eax
+		 imul edi, ecx
+		 mov edi, eax
+		 imul edi, ecx;x^3
+		 mov edi, eax
+		 imul edi,[BB];*b
+		 mov edi, eax
+		 add edi, [AA] ;in eax = a+b*x^3
+		 ;calculated f for prev x in ecx
+
+
 
 		 ;here we calculate for current x
-		 mov eax, edx
+		 mov ebp, 1
+		 imul ebp, edx
+		 mov ebp, eax
+		 imul ebp, edx
+		 mov ebp, eax
+		 imul ebp, edx;x^3
+		 mov ebp, eax
+		 imul ebp,[BB];*b
+		 mov ebp, eax
+		 add ebp, [AA] ;a+b*x^3
 
-		 mul edx
-
-		 mul edx;x^3
-
-		 mov edx, eax
-		 mov eax, [BB]
-		 mul edx
-		 add eax, [AA] ;in eax = a+b*x^3
-
-
-		 mov ebp, eax ;calculated f for current x in ecx
-		 ;compare and add lowest num
-
-		 cmp ebp, ecx
+		 cmp edi,ebp
 		 jle add_left
+
 		 add_right:
-			add esi, ecx
+			add  esi, ebp;added right value
 			jmp start_cycle
 		 add_left:
-			add esi, ebp;added left value
+			add  esi, edi;added left value
 			jmp start_cycle
 	cycle_exit:
-
-
-
-
-
+	;	       mov [result_integral], edx
+	  invoke MessageBox, 0, launchstr, "exit", MB_OK
+	  mov [result_integral], esi
 	show_result
 
 	end_help:;метка перехода на вызов помощи при неправильных аргументах
