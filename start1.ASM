@@ -38,8 +38,8 @@ import msvcrt,\
 	commandLine dd ?
 	result_integral dd 0
 	h dd 1;ширина отрезка; width of the rectangle
-	X1 dd ?
-	X2 dd ?
+	XX1 dd ?
+	XX2 dd ?
 	AA dd ?
 	BB dd ?
 
@@ -49,23 +49,35 @@ macro show_result{
 	invoke ExitProcess, 0
 }
 macro show_help{
-       invoke MessageBox, 0,"Usage: in cmd> filename [a] [b] [x1] [x2]", "Help", MB_OK
+       invoke MessageBox, 0,"Usage: in cmd> filename [a] [b] [x1] [x2]",endl,"X1 != X2, A and B != 0", "Help", MB_OK
        invoke ExitProcess, 0
 }
+macro collect_input{
+     mov eax, [AA]
+     mov ebx, [BB]
 
-macro check_input{
 
 }
+macro check_input{
+   collect_input
+      ;   cmp XX1, XX2
+  ; je end_help
 
+}
+macro input{
+	cinvoke GetCommandLine
+	mov [commandLine], eax
+	cinvoke sscanf,[commandLine], '%*s %d %d %d %d', AA,BB,XX1,XX2
+	invoke sprintf, message,  "Params are a = %d; b = %d; X1 = %d; X2 = %d;",[AA],[BB], [XX1],[XX2];result_integral
+	invoke MessageBox, 0, message, "Welcome", MB_OK
+	check_input
+	end_help:
+		show_help
+}
 .code
     start:
 	invoke MessageBox, 0, launchstr, "Welcome", MB_OK  ;launch the start welcome window; запускаем окно приветствия
-	cinvoke GetCommandLine
-	mov [commandLine], eax
-	cinvoke sscanf,[commandLine], '%*s %d %d %d %d', AA,BB,X1,X2
-	invoke sprintf, message,  "Params are %d %d %d %d",[AA],[BB], [X1],[X2];result_integral
-	invoke MessageBox, 0, message, "Welcome", MB_OK
-	show_help
+	input
 
 	;cinvoke GetCommandLine
        ; mov [commandLine], eax
