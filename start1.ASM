@@ -34,7 +34,9 @@ import msvcrt,\
 	endl FIX 10, 13 ;endline \n for strings; перенос строки
 	launchstr db "This program will calculate definite integral a+b*x^3 on [x1;x2]",endl,"using the method of rectangles(width = 1)",endl, "Made by Plyusch Evgenii, BSE181_2, 2019",0
 	message db 256 DUP(?)
-
+	res1 dd 1
+	res2 dd 1
+	count dd 1
 	commandLine dd ?
 	result_integral dd 0
 	h dd 1;ширина отрезка; width of the rectangle
@@ -49,35 +51,59 @@ macro show_result{
 	invoke ExitProcess, 0
 }
 macro show_help{
-       invoke MessageBox, 0,"Usage: in cmd> filename [a] [b] [x1] [x2]",endl,"X1 != X2, A and B != 0", "Help", MB_OK
-       invoke ExitProcess, 0
+      invoke MessageBox, 0,"Usage: in cmd> filename [a] [b] [x1] [x2] X1 != X2, A and B != 0", "Help", MB_OK
+      invoke ExitProcess, 0
 }
-macro collect_input{
+macro check_collect_input{
+
+    ; mov eax, [AA]
+    ; mov ebx, [BB]
+     mov edx, [XX1]
+     cmp edx, XX2;проверка x1 = x2
+     jge end_help; x1 >= x2
+     OR eax, ebx;Проверка а и b на ноль
+     cmp eax, 0
+     je end_help
      mov eax, [AA]
-     mov ebx, [BB]
-
-
-}
-macro check_input{
-   collect_input
-      ;   cmp XX1, XX2
-  ; je end_help
-
 }
 macro input{
 	cinvoke GetCommandLine
 	mov [commandLine], eax
 	cinvoke sscanf,[commandLine], '%*s %d %d %d %d', AA,BB,XX1,XX2
-	invoke sprintf, message,  "Params are a = %d; b = %d; X1 = %d; X2 = %d;",[AA],[BB], [XX1],[XX2];result_integral
-	invoke MessageBox, 0, message, "Welcome", MB_OK
-	check_input
-	end_help:
-		show_help
+	invoke sprintf, message,  "Params are a = %d; b = %d; X1 = %d; X2 = %d;",[AA],[BB], [XX1],[XX2]
+	invoke MessageBox, 0, message, "Your input params", MB_OK
+
 }
+proc degree3;возведение в 3 степень, результат в bp
+     push bp
+     mul bp
+endp
+
 .code
     start:
 	invoke MessageBox, 0, launchstr, "Welcome", MB_OK  ;launch the start welcome window; запускаем окно приветствия
 	input
+	check_collect_input
+	;main section
+	;eax = a, ebx = b, edx = x1
+	;while xx1 < xx2
+	start_cycle:
+		 cmp edx, [XX2]
+		 jg cycle_exit
+
+		 mov ecx, edx; ecx = previous x1
+		 inc edx
+		 mov eax,[ecx]
+		 mul eax, ecx
+
+
+		 jmp start_cycle
+	cycle_exit:
+
+
+
+	end_help:;метка перехода на вызов помощи при неправильных аргументах
+		show_help
 
 	;cinvoke GetCommandLine
        ; mov [commandLine], eax
