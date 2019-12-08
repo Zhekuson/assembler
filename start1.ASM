@@ -33,10 +33,8 @@ import msvcrt,\
 .data
 	endl FIX 10, 13 ;endline \n for strings; перенос строки
 	launchstr db "This program will calculate definite integral a+b*x^3 on [x1;x2]",endl,"using the method of rectangles(width = 1)",endl, "Made by Plyusch Evgenii, BSE181_2, 2019",0
+	debugstr db "debug"
 	message db 256 DUP(?)
-	res1 dd 1
-	res2 dd 1
-	count dd 1
 	commandLine dd ?
 	result_integral dd 0
 	h dd 1;ширина отрезка; width of the rectangle
@@ -46,7 +44,7 @@ import msvcrt,\
 	BB dd ?
 
 macro show_result{
-	invoke sprintf, message,  "The calculated integral is %d",[result_integral];result_integral
+	invoke sprintf, message,  "The calculated integral is %d",dword[esi];result_integral
 	invoke MessageBox, 0, message, "Result", MB_OK
 	invoke ExitProcess, 0
 }
@@ -70,14 +68,10 @@ macro input{
 	cinvoke GetCommandLine
 	mov [commandLine], eax
 	cinvoke sscanf,[commandLine], '%*s %d %d %d %d', AA,BB,XX1,XX2
-	invoke sprintf, message,  "Params are a = %d; b = %d; X1 = %d; X2 = %d;",[AA],[BB], [XX1],[XX2]
+	invoke sprintf, message,  "Params are a = %d; b = %d; X1 = %d ; X2 = %d ;",[AA],[BB], [XX1],[XX2]
 	invoke MessageBox, 0, message, "Your input params", MB_OK
 
 }
-proc degree3;возведение в 3 степень, результат в bp
-     push bp
-     mul bp
-endp
 
 .code
     start:
@@ -85,33 +79,61 @@ endp
 	input
 	check_collect_input
 	;main section
-	;eax = a, ebx = b, edx = x1
+	;edx = x1
 	;while xx1 < xx2
+	mov esi, 0
 	start_cycle:
 		 cmp edx, [XX2]
-		 jg cycle_exit
+		 jge cycle_exit ;check if cycle is over
 
 		 mov ecx, edx; ecx = previous x1
-		 inc edx
-		 mov eax,[ecx]
-		 mul eax, ecx
+		 inc edx ;increment edx
+
+		 mov eax, ecx
+		 mul ecx
+		 mul ecx;x^3
+
+		 mov ecx, eax
+		 mov eax, [BB]
+		 mul ecx ;*b
+
+		 add eax, [AA] ;in eax = a+b*x^3
+		 mov ecx, eax ;calculated f for prev x in ecx
+
+		 ;here we calculate for current x
+		 mov eax, edx
+
+		 mul edx
+
+		 mul edx;x^3
+
+		 mov edx, eax
+		 mov eax, [BB]
+		 mul edx
+		 add eax, [AA] ;in eax = a+b*x^3
 
 
-		 jmp start_cycle
+		 mov ebp, eax ;calculated f for current x in ecx
+		 ;compare and add lowest num
+
+		 cmp ebp, ecx
+		 jle add_left
+		 add_right:
+			add esi, ecx
+			jmp start_cycle
+		 add_left:
+			add esi, ebp;added left value
+			jmp start_cycle
 	cycle_exit:
 
 
 
-	end_help:;метка перехода на вызов помощи при неправильных аргументах
-		show_help
-
-	;cinvoke GetCommandLine
-       ; mov [commandLine], eax
 
 
 	show_result
 
-
+	end_help:;метка перехода на вызов помощи при неправильных аргументах
+		show_help
 
 
 
